@@ -337,7 +337,7 @@
         });
 
 function getTransactionsCollection() {
-    return collection(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions');
+    return collection(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions', 'data');
 }
         async function initApp() {
             try {
@@ -469,34 +469,33 @@ function getTransactionsCollection() {
             }
         });
 
-        window.togglePaymentStatus = async function(id, field, currentState) {
+window.togglePaymentStatus = async function(id, field, currentState) {
+    try {
+        const docRef = doc(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions', 'data', id);
+        await updateDoc(docRef, {
+            [field]: !currentState
+        });
+    } catch (err) {
+        console.error("Error updating payment status:", err);
+    }
+};
+
+window.confirmDeleteTransaction = function(id) {
+    showModal(
+        "Delete Transaction?",
+        "Are you sure you want to delete this record? This action cannot be undone.",
+        "Delete",
+        "bg-red-500",
+        async () => {
             try {
-                const docRef = doc(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions', id);
-                await updateDoc(docRef, {
-                    [field]: !currentState
-                });
+                const docRef = doc(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions', 'data', id);
+                await deleteDoc(docRef);
             } catch (err) {
-                console.error("Error updating payment status:", err);
+                console.error("Error deleting transaction:", err);
             }
-        };
-
-        window.confirmDeleteTransaction = function(id) {
-            showModal(
-                "Delete Transaction?",
-                "Are you sure you want to delete this record? This action cannot be undone.",
-                "Delete",
-                "bg-red-500",
-                async () => {
-                    try {
-                        const docRef = doc(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions', id);
-                        await deleteDoc(docRef);
-                    } catch (err) {
-                        console.error("Error deleting transaction:", err);
-                    }
-                }
-            );
-        };
-
+        }
+    );
+};
         function render() {
             // Bug fixed: removed accidental translateY typo
             let totalProfit = transactions.reduce((acc, curr) => acc + (curr.profit || 0), 0);
