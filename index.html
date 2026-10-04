@@ -710,18 +710,20 @@
                 .filter(tx => tx.isSold)
                 .reduce((acc, curr) => acc + (curr.profit || 0), 0);
             
-            // Calculate how much shared pool cash is currently tied up in active/unpaid items or transport
+            // Calculate how much shared pool cash is currently tied up in unsold inventory
             let tiedUpSharedPool = 0;
             transactions.forEach(tx => {
-                if (tx.itemFunders && Array.isArray(tx.itemFunders)) {
-                    tx.itemFunders.forEach(f => {
-                        if (f.name === 'SHARED POOL' && !tx.itemPaid) {
-                            tiedUpSharedPool += f.amount;
-                        }
-                    });
-                }
-                if (tx.transportFunder === 'SHARED POOL' && tx.transportCost > 0 && !tx.transportPaid) {
-                    tiedUpSharedPool += tx.transportCost;
+                if (!tx.isSold) {
+                    if (tx.itemFunders && Array.isArray(tx.itemFunders)) {
+                        tx.itemFunders.forEach(f => {
+                            if (f.name === 'SHARED POOL') {
+                                tiedUpSharedPool += f.amount;
+                            }
+                        });
+                    }
+                    if (tx.transportFunder === 'SHARED POOL' && tx.transportCost > 0) {
+                        tiedUpSharedPool += tx.transportCost;
+                    }
                 }
             });
 
