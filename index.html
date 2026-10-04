@@ -336,9 +336,9 @@
             updateFunderRemoveButtons();
         });
 
-        function getTransactionsCollection() {
-            return collection(db, 'artifacts', appId, 'public', 'transactions');
-        }
+function getTransactionsCollection() {
+    return collection(db, 'artifacts', appId, 'public', 'main_store', 'transactions');
+}
 
         async function initApp() {
             try {
