@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPhone Pool Money</title>
+    <title>FlipTrack | iPhone Business Dashboard</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -152,16 +152,33 @@
                             </button>
                         </div>
 
-                        <!-- Transport Cost & Funder -->
-                        <div class="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
-                            <div>
-                                <label for="transportCost" class="block text-sm font-medium text-slate-700 mb-1 text-xs">Transport ($)</label>
-                                <input type="number" id="transportCost" required min="0" step="0.01" placeholder="0.00" class="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm">
+                        <!-- Transport Cost & Multi-Funders -->
+                        <div class="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-sm font-medium text-slate-700">Transport Cost Contributions (Optional)</label>
+                                <button type="button" id="use-shared-pool-transport-btn" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded font-medium transition-colors border border-emerald-200 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Use Shared Pool
+                                </button>
                             </div>
-                            <div>
-                                <label for="transportFunder" class="block text-sm font-medium text-slate-700 mb-1 text-xs">Paid By</label>
-                                <input type="text" id="transportFunder" required placeholder="Name" class="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm uppercase">
+                            <div id="transport-funders-container" class="space-y-2">
+                                <!-- Initial Transport Funder Row (Optional) -->
+                                <div class="transport-funder-row flex items-center gap-2">
+                                    <div class="w-1/3">
+                                        <input type="number" min="0" step="0.01" placeholder="Cost ($)" class="transport-funder-amount w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm">
+                                    </div>
+                                    <div class="w-2/3">
+                                        <input type="text" placeholder="Paid By Name" class="transport-funder-name w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm uppercase">
+                                    </div>
+                                    <button type="button" class="remove-transport-funder-btn text-slate-400 hover:text-red-500 p-1 invisible transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                    </button>
+                                </div>
                             </div>
+                            <button type="button" id="add-transport-funder-btn" class="text-sm text-primary hover:text-blue-700 font-medium flex items-center gap-1 mt-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Add Transport Contributor
+                            </button>
                         </div>
 
                         <!-- Selling Price -->
@@ -256,23 +273,25 @@
                     <label class="block text-sm font-medium text-slate-700 mb-1">Item Description</label>
                     <input type="text" id="edit-itemName" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Transport Cost ($)</label>
-                        <input type="number" id="edit-transportCost" required min="0" step="0.01" class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Transport Paid By</label>
-                        <input type="text" id="edit-transportFunder" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm uppercase">
-                    </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Item Contributors & Amounts ($)</label>
+                    <div id="edit-funders-container" class="space-y-2"></div>
+                    <button type="button" id="edit-add-funder-btn" class="text-xs text-primary hover:text-blue-700 font-medium flex items-center gap-1 mt-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add Contributor
+                    </button>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Transport Contributors & Amounts ($)</label>
+                    <div id="edit-transport-funders-container" class="space-y-2"></div>
+                    <button type="button" id="edit-add-transport-funder-btn" class="text-xs text-primary hover:text-blue-700 font-medium flex items-center gap-1 mt-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add Transport Contributor
+                    </button>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Selling Price ($)</label>
                     <input type="number" id="edit-sellingPrice" required min="0" step="0.01" class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm">
-                </div>
-                <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Item Contributors & Amounts ($)</label>
-                    <div id="edit-funders-container" class="space-y-2"></div>
                 </div>
                 <div class="flex items-center gap-3 pt-2">
                     <input type="checkbox" id="edit-isSold" class="w-5 h-5 text-secondary rounded border-slate-300">
@@ -325,6 +344,7 @@
         const sharedPoolUsedEl = document.getElementById('shared-pool-used');
         const availablePoolBadge = document.getElementById('available-pool-badge');
         const useSharedPoolBtn = document.getElementById('use-shared-pool-btn');
+        const useSharedPoolTransportBtn = document.getElementById('use-shared-pool-transport-btn');
         const payoutsContainer = document.getElementById('payouts-container');
         const submitBtn = document.getElementById('submit-btn');
         const submitText = document.getElementById('submit-text');
@@ -332,6 +352,8 @@
         const transactionCount = document.getElementById('transaction-count');
         const itemFundersContainer = document.getElementById('item-funders-container');
         const addFunderBtn = document.getElementById('add-funder-btn');
+        const transportFundersContainer = document.getElementById('transport-funders-container');
+        const addTransportFunderBtn = document.getElementById('add-transport-funder-btn');
 
         // Modal Elements
         const customModal = document.getElementById('custom-modal');
@@ -345,6 +367,8 @@
         const editModal = document.getElementById('edit-modal');
         const editForm = document.getElementById('edit-form');
         const editCancelBtn = document.getElementById('edit-cancel-btn');
+        const editAddFunderBtn = document.getElementById('edit-add-funder-btn');
+        const editAddTransportFunderBtn = document.getElementById('edit-add-transport-funder-btn');
 
         function showModal(title, message, confirmText, confirmClass, onConfirm, showCancel = true) {
             modalTitle.innerText = title;
@@ -416,7 +440,43 @@
             updateFunderRemoveButtons();
         });
 
-        // Quick button to populate Shared Pool as a funder
+        // Dynamic Transport Funder Rows
+        function updateTransportFunderRemoveButtons() {
+            const rows = transportFundersContainer.querySelectorAll('.transport-funder-row');
+            rows.forEach((row) => {
+                const btn = row.querySelector('.remove-transport-funder-btn');
+                if (rows.length > 1) {
+                    btn.classList.remove('invisible');
+                } else {
+                    btn.classList.add('invisible');
+                }
+            });
+        }
+
+        addTransportFunderBtn.addEventListener('click', () => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'transport-funder-row flex items-center gap-2';
+            rowDiv.innerHTML = `
+                <div class="w-1/3">
+                    <input type="number" min="0" step="0.01" placeholder="Cost ($)" class="transport-funder-amount w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm">
+                </div>
+                <div class="w-2/3">
+                    <input type="text" placeholder="Paid By Name" class="transport-funder-name w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm uppercase">
+                </div>
+                <button type="button" class="remove-transport-funder-btn text-slate-400 hover:text-red-500 p-1 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                </button>
+            `;
+            transportFundersContainer.appendChild(rowDiv);
+            
+            rowDiv.querySelector('.remove-transport-funder-btn').addEventListener('click', () => {
+                rowDiv.remove();
+                updateTransportFunderRemoveButtons();
+            });
+            updateTransportFunderRemoveButtons();
+        });
+
+        // Quick button to populate Shared Pool as an item funder
         useSharedPoolBtn.addEventListener('click', () => {
             if (availableSharedPool <= 0) {
                 showModal("No Funds Available", "The shared profit pool currently has $0.00 available to spend.", "Okay", "bg-primary", () => {}, false);
@@ -444,6 +504,37 @@
             if (targetRow) {
                 targetRow.querySelector('.funder-name').value = 'SHARED POOL';
                 targetRow.querySelector('.funder-amount').value = availableSharedPool.toFixed(2);
+            }
+        });
+
+        // Quick button to populate Shared Pool as a transport funder
+        useSharedPoolTransportBtn.addEventListener('click', () => {
+            if (availableSharedPool <= 0) {
+                showModal("No Funds Available", "The shared profit pool currently has $0.00 available to spend.", "Okay", "bg-primary", () => {}, false);
+                return;
+            }
+
+            const rows = transportFundersContainer.querySelectorAll('.transport-funder-row');
+            let targetRow = null;
+
+            for (let r of rows) {
+                const nameInput = r.querySelector('.transport-funder-name');
+                const amountInput = r.querySelector('.transport-funder-amount');
+                if (!nameInput.value.trim() && !amountInput.value) {
+                    targetRow = r;
+                    break;
+                }
+            }
+
+            if (!targetRow) {
+                addTransportFunderBtn.click();
+                const newRows = transportFundersContainer.querySelectorAll('.transport-funder-row');
+                targetRow = newRows[newRows.length - 1];
+            }
+
+            if (targetRow) {
+                targetRow.querySelector('.transport-funder-name').value = 'SHARED POOL';
+                targetRow.querySelector('.transport-funder-amount').value = availableSharedPool.toFixed(2);
             }
         });
 
@@ -510,16 +601,21 @@
 
             transactions.forEach(t => {
                 const totalItemCost = (t.funders || []).reduce((sum, f) => sum + Number(f.amount || 0), 0);
+                const totalTransportCost = (t.transportFunders || []).reduce((sum, f) => sum + Number(f.amount || 0), 0);
                 const sellingPrice = Number(t.sellingPrice || 0);
-                const transportCost = Number(t.transportCost || 0);
                 
                 if (t.isSold) {
                     // Sold item: full profit is generated and added to pool
-                    const itemProfit = sellingPrice - totalItemCost - transportCost;
+                    const itemProfit = sellingPrice - totalItemCost - totalTransportCost;
                     totalProfitGenerated += itemProfit;
                 } else {
                     // Active (unsold) item: any capital drawn from SHARED POOL counts as used/subtracted
                     (t.funders || []).forEach(f => {
+                        if ((f.name || '').trim().toUpperCase() === 'SHARED POOL') {
+                            activeInventoryCostUsed += Number(f.amount || 0);
+                        }
+                    });
+                    (t.transportFunders || []).forEach(f => {
                         if ((f.name || '').trim().toUpperCase() === 'SHARED POOL') {
                             activeInventoryCostUsed += Number(f.amount || 0);
                         }
@@ -542,20 +638,24 @@
                 sharedPoolTotalEl.className = "text-4xl font-bold text-secondary relative z-10 tracking-tight";
             }
 
-            // 2. Calculate Outstanding Capital Payouts per Funder (excluding SHARED POOL)
+            // 2. Calculate Outstanding Capital Payouts per Funder (including SHARED POOL if active)
             const payoutsMap = {};
             transactions.forEach(t => {
                 if (!t.isSold) {
                     (t.funders || []).forEach(f => {
                         const name = (f.name || '').trim().toUpperCase();
-                        if (name && name !== 'SHARED POOL') {
-                            payoutsMap[name] = (payoutsMap[name] || 0) + Number(f.amount || 0);
+                        const amt = Number(f.amount || 0);
+                        if (name && amt > 0) {
+                            payoutsMap[name] = (payoutsMap[name] || 0) + amt;
                         }
                     });
-                    const transportFunder = (t.transportFunder || '').trim().toUpperCase();
-                    if (transportFunder && transportFunder !== 'SHARED POOL') {
-                        payoutsMap[transportFunder] = (payoutsMap[transportFunder] || 0) + Number(t.transportCost || 0);
-                    }
+                    (t.transportFunders || []).forEach(f => {
+                        const name = (f.name || '').trim().toUpperCase();
+                        const amt = Number(f.amount || 0);
+                        if (name && amt > 0) {
+                            payoutsMap[name] = (payoutsMap[name] || 0) + amt;
+                        }
+                    });
                 }
             });
 
@@ -567,9 +667,10 @@
                 payoutEntries.forEach(([name, amount]) => {
                     const row = document.createElement('div');
                     row.className = 'flex justify-between items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 text-sm';
+                    const isSharedPool = name === 'SHARED POOL';
                     row.innerHTML = `
-                        <span class="font-medium text-slate-700">${name}</span>
-                        <span class="font-bold text-slate-900">$${amount.toFixed(2)}</span>
+                        <span class="font-medium ${isSharedPool ? 'text-emerald-700 font-bold' : 'text-slate-700'}">${name} ${isSharedPool ? '(To Return)' : ''}</span>
+                        <span class="font-bold ${isSharedPool ? 'text-emerald-700' : 'text-slate-900'}">$${amount.toFixed(2)}</span>
                     `;
                     payoutsContainer.appendChild(row);
                 });
@@ -588,21 +689,22 @@
 
             transactions.forEach((t) => {
                 const totalItemCost = (t.funders || []).reduce((sum, f) => sum + Number(f.amount || 0), 0);
+                const totalTransportCost = (t.transportFunders || []).reduce((sum, f) => sum + Number(f.amount || 0), 0);
                 const sellingPrice = Number(t.sellingPrice || 0);
-                const transportCost = Number(t.transportCost || 0);
-                const netProfit = sellingPrice - totalItemCost - transportCost;
+                const netProfit = sellingPrice - totalItemCost - totalTransportCost;
 
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
                 
                 // Funders string summary
                 const fundersStr = (t.funders || []).map(f => `${f.name}: $${Number(f.amount).toFixed(2)}`).join(', ');
+                const transportFundersStr = (t.transportFunders || []).filter(f => Number(f.amount) > 0 && f.name).map(f => `${f.name}: $${Number(f.amount).toFixed(2)}`).join(', ');
 
                 tr.innerHTML = `
                     <td class="px-4 py-4">
                         <div class="font-bold text-slate-800">${escapeHtml(t.itemName)}</div>
                         <div class="text-xs text-slate-500 mt-0.5">Cost: $${totalItemCost.toFixed(2)} (${escapeHtml(fundersStr)})</div>
-                        <div class="text-xs text-slate-500">Transport: $${transportCost.toFixed(2)} (${escapeHtml(t.transportFunder)})</div>
+                        <div class="text-xs text-slate-500">Transport: $${totalTransportCost.toFixed(2)} ${transportFundersStr ? '(' + escapeHtml(transportFundersStr) + ')' : ''}</div>
                     </td>
                     <td class="px-4 py-4">
                         <div class="font-semibold text-slate-800">Price: $${sellingPrice.toFixed(2)}</div>
@@ -671,12 +773,10 @@
             e.preventDefault();
 
             const itemName = document.getElementById('itemName').value.trim();
-            const transportCost = parseFloat(document.getElementById('transportCost').value) || 0;
-            const transportFunder = document.getElementById('transportFunder').value.trim().toUpperCase();
             const sellingPrice = parseFloat(document.getElementById('sellingPrice').value) || 0;
             const isSold = document.getElementById('isSoldCreate').checked;
 
-            // Collect dynamic funders
+            // Collect dynamic item funders
             const funders = [];
             let validFunders = true;
             itemFundersContainer.querySelectorAll('.funder-row').forEach(row => {
@@ -694,11 +794,20 @@
                 return;
             }
 
+            // Collect dynamic transport funders (optional, can be zero)
+            const transportFunders = [];
+            transportFundersContainer.querySelectorAll('.transport-funder-row').forEach(row => {
+                const amount = parseFloat(row.querySelector('.transport-funder-amount').value) || 0;
+                const name = row.querySelector('.transport-funder-name').value.trim().toUpperCase();
+                if (amount > 0 && name) {
+                    transportFunders.push({ name, amount });
+                }
+            });
+
             const newTransaction = {
                 itemName,
                 funders,
-                transportCost,
-                transportFunder,
+                transportFunders,
                 sellingPrice,
                 isSold,
                 timestamp: Date.now()
@@ -723,6 +832,19 @@
                         </button>
                     </div>
                 `;
+                transportFundersContainer.innerHTML = `
+                    <div class="transport-funder-row flex items-center gap-2">
+                        <div class="w-1/3">
+                            <input type="number" min="0" step="0.01" placeholder="Cost ($)" class="transport-funder-amount w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm">
+                        </div>
+                        <div class="w-2/3">
+                            <input type="text" placeholder="Paid By Name" class="transport-funder-name w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm uppercase">
+                        </div>
+                        <button type="button" class="remove-transport-funder-btn text-slate-400 hover:text-red-500 p-1 invisible transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                        </button>
+                    </div>
+                `;
             } catch (err) {
                 console.error("Error adding transaction:", err);
                 showModal("Save Error", "Could not save transaction to cloud database.", "Okay", "bg-red-500", () => {}, false);
@@ -741,8 +863,6 @@
 
             document.getElementById('edit-id').value = t.id;
             document.getElementById('edit-itemName').value = t.itemName || '';
-            document.getElementById('edit-transportCost').value = t.transportCost || 0;
-            document.getElementById('edit-transportFunder').value = t.transportFunder || '';
             document.getElementById('edit-sellingPrice').value = t.sellingPrice || 0;
             document.getElementById('edit-isSold').checked = !!t.isSold;
 
@@ -763,16 +883,66 @@
                 editFundersContainer.appendChild(row);
             });
 
+            // Handle legacy transportCost format if transportFunders is missing
+            let transportList = t.transportFunders || [];
+            if (transportList.length === 0 && Number(t.transportCost || 0) > 0) {
+                transportList = [{ name: t.transportFunder || 'TRANSPORT', amount: t.transportCost }];
+            }
+
+            const editTransportFundersContainer = document.getElementById('edit-transport-funders-container');
+            editTransportFundersContainer.innerHTML = '';
+            transportList.forEach(f => {
+                const row = document.createElement('div');
+                row.className = 'edit-transport-funder-row flex items-center gap-2 mb-2';
+                row.innerHTML = `
+                    <div class="w-1/3">
+                        <input type="number" min="0" step="0.01" value="${f.amount}" class="edit-transport-funder-amount w-full px-3 py-2 border border-slate-300 rounded-md text-sm">
+                    </div>
+                    <div class="w-2/3">
+                        <input type="text" value="${f.name}" class="edit-transport-funder-name w-full px-3 py-2 border border-slate-300 rounded-md text-sm uppercase">
+                    </div>
+                `;
+                editTransportFundersContainer.appendChild(row);
+            });
+
             editModal.classList.remove('hidden');
             setTimeout(() => editModal.classList.remove('opacity-0'), 10);
         }
+
+        editAddFunderBtn.addEventListener('click', () => {
+            const editFundersContainer = document.getElementById('edit-funders-container');
+            const row = document.createElement('div');
+            row.className = 'edit-funder-row flex items-center gap-2 mb-2';
+            row.innerHTML = `
+                <div class="w-1/3">
+                    <input type="number" required min="0" step="0.01" placeholder="Cost ($)" class="edit-funder-amount w-full px-3 py-2 border border-slate-300 rounded-md text-sm">
+                </div>
+                <div class="w-2/3">
+                    <input type="text" required placeholder="Funder Name" class="edit-funder-name w-full px-3 py-2 border border-slate-300 rounded-md text-sm uppercase">
+                </div>
+            `;
+            editFundersContainer.appendChild(row);
+        });
+
+        editAddTransportFunderBtn.addEventListener('click', () => {
+            const editTransportFundersContainer = document.getElementById('edit-transport-funders-container');
+            const row = document.createElement('div');
+            row.className = 'edit-transport-funder-row flex items-center gap-2 mb-2';
+            row.innerHTML = `
+                <div class="w-1/3">
+                    <input type="number" min="0" step="0.01" placeholder="Cost ($)" class="edit-transport-funder-amount w-full px-3 py-2 border border-slate-300 rounded-md text-sm">
+                </div>
+                <div class="w-2/3">
+                    <input type="text" placeholder="Paid By Name" class="edit-transport-funder-name w-full px-3 py-2 border border-slate-300 rounded-md text-sm uppercase">
+                </div>
+            `;
+            editTransportFundersContainer.appendChild(row);
+        });
 
         editForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
             const itemName = document.getElementById('edit-itemName').value.trim();
-            const transportCost = parseFloat(document.getElementById('edit-transportCost').value) || 0;
-            const transportFunder = document.getElementById('edit-transportFunder').value.trim().toUpperCase();
             const sellingPrice = parseFloat(document.getElementById('edit-sellingPrice').value) || 0;
             const isSold = document.getElementById('edit-isSold').checked;
 
@@ -785,15 +955,25 @@
                 }
             });
 
+            const transportFunders = [];
+            document.querySelectorAll('#edit-transport-funders-container .edit-transport-funder-row').forEach(row => {
+                const amount = parseFloat(row.querySelector('.edit-transport-funder-amount').value) || 0;
+                const name = row.querySelector('.edit-transport-funder-name').value.trim().toUpperCase();
+                if (amount > 0 && name) {
+                    transportFunders.push({ name, amount });
+                }
+            });
+
             try {
                 const docRef = doc(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions', 'data', id);
                 await updateDoc(docRef, {
                     itemName,
-                    transportCost,
-                    transportFunder,
                     sellingPrice,
                     isSold,
-                    funders
+                    funders,
+                    transportFunders,
+                    transportCost: 0,
+                    transportFunder: ''
                 });
                 editModal.classList.add('opacity-0');
                 setTimeout(() => editModal.classList.add('hidden'), 200);
