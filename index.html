@@ -337,9 +337,8 @@
         });
 
 function getTransactionsCollection() {
-    return collection(db, 'artifacts', appId, 'public', 'main_store', 'transactions');
+    return collection(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions');
 }
-
         async function initApp() {
             try {
                 // Ensure auth state is established before querying Firestore
@@ -472,7 +471,7 @@ function getTransactionsCollection() {
 
         window.togglePaymentStatus = async function(id, field, currentState) {
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'transactions', id);
+                const docRef = doc(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions', id);
                 await updateDoc(docRef, {
                     [field]: !currentState
                 });
@@ -489,7 +488,7 @@ function getTransactionsCollection() {
                 "bg-red-500",
                 async () => {
                     try {
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'transactions', id);
+                        const docRef = doc(db, 'artifacts', 'iphone-bns-store', 'public', 'transactions', id);
                         await deleteDoc(docRef);
                     } catch (err) {
                         console.error("Error deleting transaction:", err);
