@@ -77,9 +77,12 @@
             <!-- Shared Pool Card -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-center items-center relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-primary opacity-5 rounded-bl-full"></div>
-                <h2 class="text-lg font-medium text-slate-500 mb-2 relative z-10">Shared Profit Pool (Sold Items Only)</h2>
-                <div class="text-5xl font-bold text-secondary relative z-10 tracking-tight" id="shared-pool-total">$0.00</div>
-                <p class="text-sm text-slate-400 mt-2 text-center max-w-xs relative z-10">Accumulated profit from marked as <strong>Sold</strong> items.</p>
+                <h2 class="text-sm font-medium text-slate-500 mb-1 relative z-10 uppercase tracking-wider">Shared Profit Pool (Sold Items)</h2>
+                <div class="text-4xl font-bold text-secondary relative z-10 tracking-tight" id="shared-pool-total">$0.00</div>
+                <div class="mt-2 text-xs text-slate-500 flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 relative z-10">
+                    <span>Available Cash to Reinvest:</span>
+                    <span class="font-bold text-slate-700" id="shared-pool-available">$0.00</span>
+                </div>
             </div>
 
             <!-- Capital Payouts Card -->
@@ -121,7 +124,10 @@
                         <div class="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-100">
                             <div class="flex items-center justify-between">
                                 <label class="block text-sm font-medium text-slate-700">Item Cost Contributions</label>
-                                <span class="text-xs font-semibold text-primary bg-blue-50 px-2 py-1 rounded-full">Split Cost</span>
+                                <button type="button" id="use-shared-pool-btn" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded font-medium transition-colors border border-emerald-200 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Use Shared Pool ($<span id="available-pool-badge">0.00</span>)
+                                </button>
                             </div>
                             <div id="item-funders-container" class="space-y-2">
                                 <!-- Initial Funder Row -->
@@ -222,6 +228,7 @@
         </div>
     </main>
 
+    <!-- Custom Modal for Alerts and Confirmations -->
     <div id="custom-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-200">
         <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-200" id="modal-content-box">
             <div id="modal-icon-container" class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 mb-4 mx-auto">
@@ -236,6 +243,7 @@
         </div>
     </div>
 
+    <!-- Edit Transaction Modal -->
     <div id="edit-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-200">
         <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Edit Transaction & Financials</h3>
@@ -302,11 +310,15 @@
         const db = getFirestore(app);
 
         let transactions = [];
+        let availableSharedPool = 0;
 
         const form = document.getElementById('transaction-form');
         const tableBody = document.getElementById('transactions-table-body');
         const emptyState = document.getElementById('empty-state');
         const sharedPoolTotalEl = document.getElementById('shared-pool-total');
+        const sharedPoolAvailableEl = document.getElementById('shared-pool-available');
+        const availablePoolBadge = document.getElementById('available-pool-badge');
+        const useSharedPoolBtn = document.getElementById('use-shared-pool-btn');
         const payoutsContainer = document.getElementById('payouts-container');
         const submitBtn = document.getElementById('submit-btn');
         const submitText = document.getElementById('submit-text');
@@ -328,11 +340,18 @@
         const editForm = document.getElementById('edit-form');
         const editCancelBtn = document.getElementById('edit-cancel-btn');
 
-        function showModal(title, message, confirmText, confirmClass, onConfirm) {
+        function showModal(title, message, confirmText, confirmClass, onConfirm, showCancel = true) {
             modalTitle.innerText = title;
             modalMessage.innerText = message;
             modalConfirmBtn.innerText = confirmText;
             modalConfirmBtn.className = `flex-1 px-4 py-2 ${confirmClass} text-white rounded-md font-medium transition-colors`;
+            
+            if (!showCancel) {
+                modalCancelBtn.classList.add('hidden');
+            } else {
+                modalCancelBtn.classList.remove('hidden');
+            }
+
             modalActionCallback = onConfirm;
             customModal.classList.remove('hidden');
             setTimeout(() => customModal.classList.remove('opacity-0'), 10);
@@ -389,6 +408,39 @@
                 updateFunderRemoveButtons();
             });
             updateFunderRemoveButtons();
+        });
+
+        // Quick button to populate Shared Pool as a funder
+        useSharedPoolBtn.addEventListener('click', () => {
+            if (availableSharedPool <= 0) {
+                showModal("No Funds Available", "The shared profit pool currently has $0.00 available to spend.", "Okay", "bg-primary", () => {}, false);
+                return;
+            }
+
+            // Check if there's already an empty row or use the first row
+            const rows = itemFundersContainer.querySelectorAll('.funder-row');
+            let targetRow = null;
+
+            for (let r of rows) {
+                const nameInput = r.querySelector('.funder-name');
+                const amountInput = r.querySelector('.funder-amount');
+                if (!nameInput.value.trim() && !amountInput.value) {
+                    targetRow = r;
+                    break;
+                }
+            }
+
+            if (!targetRow) {
+                // Add new row
+                addFunderBtn.click();
+                const newRows = itemFundersContainer.querySelectorAll('.funder-row');
+                targetRow = newRows[newRows.length - 1];
+            }
+
+            if (targetRow) {
+                targetRow.querySelector('.funder-name').value = 'SHARED POOL';
+                targetRow.querySelector('.funder-amount').value = availableSharedPool.toFixed(2);
+            }
         });
 
         function getTransactionsCollection() {
@@ -459,6 +511,7 @@
             const funderRows = itemFundersContainer.querySelectorAll('.funder-row');
             let itemFunders = [];
             let totalItemCost = 0;
+            let sharedPoolRequested = 0;
 
             funderRows.forEach(row => {
                 const amount = parseFloat(row.querySelector('.funder-amount').value) || 0;
@@ -466,11 +519,23 @@
                 if (amount > 0 && name) {
                     itemFunders.push({ name, amount });
                     totalItemCost += amount;
+                    if (name === 'SHARED POOL') {
+                        sharedPoolRequested += amount;
+                    }
                 }
             });
 
+            if (transportFunder === 'SHARED POOL' && transportCost > 0) {
+                sharedPoolRequested += transportCost;
+            }
+
+            if (sharedPoolRequested > availableSharedPool) {
+                showModal("Insufficient Shared Pool", `You attempted to use $${sharedPoolRequested.toFixed(2)} from the shared pool, but only $${availableSharedPool.toFixed(2)} is available.`, "Okay", "bg-red-500", () => {}, false);
+                return;
+            }
+
             if (itemFunders.length === 0) {
-                showModal("Validation Error", "Please enter at least one valid item cost contributor.", "Okay", "bg-primary", () => {});
+                showModal("Validation Error", "Please enter at least one valid item cost contributor.", "Okay", "bg-primary", () => {}, false);
                 return;
             }
 
@@ -522,7 +587,7 @@
                 console.error("Error saving transaction:", err);
                 submitBtn.disabled = false;
                 submitText.innerText = 'Log Item';
-                showModal("Error", "Could not save transaction to cloud database.", "Close", "bg-red-500", () => {});
+                showModal("Error", "Could not save transaction to cloud database.", "Close", "bg-red-500", () => {}, false);
             }
         });
 
@@ -617,7 +682,7 @@
                 setTimeout(() => editModal.classList.add('hidden'), 200);
             } catch (err) {
                 console.error("Error updating transaction:", err);
-                showModal("Error", "Could not update transaction.", "Close", "bg-red-500", () => {});
+                showModal("Error", "Could not update transaction.", "Close", "bg-red-500", () => {}, false);
             }
         });
 
@@ -634,17 +699,38 @@
                     } catch (err) {
                         console.error("Error deleting transaction:", err);
                     }
-                }
+                },
+                true
             );
         };
 
         function render() {
-            // Shared Pool only sums profit for items where isSold === true
+            // Total accumulated profit from sold items
             let totalProfit = transactions
                 .filter(tx => tx.isSold)
                 .reduce((acc, curr) => acc + (curr.profit || 0), 0);
             
+            // Calculate how much shared pool cash is currently tied up in active/unpaid items or transport
+            let tiedUpSharedPool = 0;
+            transactions.forEach(tx => {
+                if (tx.itemFunders && Array.isArray(tx.itemFunders)) {
+                    tx.itemFunders.forEach(f => {
+                        if (f.name === 'SHARED POOL' && !tx.itemPaid) {
+                            tiedUpSharedPool += f.amount;
+                        }
+                    });
+                }
+                if (tx.transportFunder === 'SHARED POOL' && tx.transportCost > 0 && !tx.transportPaid) {
+                    tiedUpSharedPool += tx.transportCost;
+                }
+            });
+
+            availableSharedPool = totalProfit - tiedUpSharedPool;
+            if (availableSharedPool < 0) availableSharedPool = 0;
+
             sharedPoolTotalEl.innerText = `$${totalProfit.toFixed(2)}`;
+            sharedPoolAvailableEl.innerText = `$${availableSharedPool.toFixed(2)}`;
+            availablePoolBadge.innerText = availableSharedPool.toFixed(2);
 
             let owedMap = {};
 
@@ -681,8 +767,9 @@
                     if (amount > 0) {
                         const barItem = document.createElement('div');
                         barItem.className = 'flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-sm';
+                        const displayName = name === 'SHARED POOL' ? '🔄 Shared Pool (Capital Return)' : name;
                         barItem.innerHTML = `
-                            <span class="font-medium text-slate-700">${name}</span>
+                            <span class="font-medium text-slate-700">${displayName}</span>
                             <span class="font-bold text-slate-900">$${amount.toFixed(2)}</span>
                         `;
                         payoutsContainer.appendChild(barItem);
@@ -706,9 +793,10 @@
                 tr.className = 'border-b border-slate-200 hover:bg-slate-50/50 transition-colors';
                 
                 const itemFundersStr = tx.itemFunders 
-                    ? tx.itemFunders.map(f => `${f.name}: $${f.amount.toFixed(2)}`).join('<br>') 
+                    ? tx.itemFunders.map(f => `${f.name === 'SHARED POOL' ? '🔄 Shared Pool' : f.name}: $${f.amount.toFixed(2)}`).join('<br>') 
                     : 'N/A';
 
+                const transportDisplayName = tx.transportFunder === 'SHARED POOL' ? '🔄 Shared Pool' : (tx.transportFunder || 'N/A');
                 const profitClass = tx.profit >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-600 font-semibold';
                 const soldBadge = tx.isSold 
                     ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Sold</span>`
@@ -719,7 +807,7 @@
                         <div class="font-bold text-slate-900 text-base mb-1">${tx.itemName}</div>
                         <div class="text-xs text-slate-500 space-y-0.5">
                             <div><strong class="text-slate-600">Funders:</strong><br>${itemFundersStr}</div>
-                            <div><strong class="text-slate-600">Transport:</strong> $${(tx.transportCost || 0).toFixed(2)} (${tx.transportFunder || 'N/A'})</div>
+                            <div><strong class="text-slate-600">Transport:</strong> $${(tx.transportCost || 0).toFixed(2)} (${transportDisplayName})</div>
                         </div>
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap">
